@@ -1,0 +1,32 @@
+sudo: required
+dist: trusty
+before_install:
+- sudo apt-get -qq update && sudo apt-get install -y --no-install-recommends texlive-fonts-recommended
+  texlive-latex-extra texlive-fonts-extra dvipng texlive-latex-recommended
+script:
+- mkdir _build
+- pdflatex -interaction=nonstopmode  -output-directory _build main.tex
+before_deploy:
+      # Set up git user name and tag this commit
+      - git config --local user.name "Travis CI"
+      - git config --local user.email "travis@travis-ci.org"
+      - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
+deploy:
+  provider: releases
+  api_key:
+    secure: EHuihjJm8CStcl/OFqBrIfSPOxDHZe0fk7rQHFOHK05F6W+K4ltKVipfNJczvrrfHyv7SKM5YSk8cUBCmzyH1xlzkFTqnMFmEzwOWpcSU5K2PaMQuP0wkuXffPurxfAKSJnHIcn4zYH6ELOuUz5D7ARz3pYp0+xdt9Y65J2IbSM+PgyzFY5x7il7czk7+YUksUUju8mzhquam0jgOTF1q9iEneJ3HAY/qogBFQj5FvvD3162JZO8PMDYDElKtsrr7AHxLxlmkEQ4/ogQXc4aHkyOqOjqwjngyIA8kk55zNH3+QMWHhelJR5esj4BLazVo4Kf1jkOAtjWlDVeecpAIxHnH+4bJ79sr6zWmtcAtgW2omT5TEmtB3RGy+ECkxVLVJOTcMETCwMtJbPhNHyvLx5Z8hHgmFeIl3n1LBfzhyH2QYAvE6rh8puD2xSQLVEIJeYoqbc6JZw8lCmJbi323nXksHwFY919jWRQS61N1YhxL/V4V+K04YF4SjXxMU4Y5LP9HjSWSu5Vvt4dRn+T7f/S/sfp0nyv1ezEQNPi7EzSAqlk8PBPzirUeP3TeMvD9yUy8YRC8MAZJe0TXvf+qc5IhE9Y3J9js27k7vJHGPetWW8ptIA4p/iMqlrpTqsc29q2EiasEGHTJYreelEY6bpiQnIPGYR7nFdggmf2GDM=
+  file_glob: true
+  file: _build/*
+  skip_cleanup: true
+  on:
+    repo: jc0b/PhilosophySummary
+
+#discord channel integration, I should probably mirror this sh file somewhere just in case    
+after_success:
+  - wget http://assets.jacobsburley.com/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget http://assets.jacobsburley.com/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
